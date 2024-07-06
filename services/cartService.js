@@ -22,17 +22,14 @@ exports.addProductToCart = asyncHandler(async (req, res, next) => {
   const { productId, color } = req.body;
   const product = await Product.findById(productId);
 
-  // 1) Get Cart for logged user
   let cart = await Cart.findOne({ user: req.user._id });
 
   if (!cart) {
-    // create cart fot logged user with product
     cart = await Cart.create({
       user: req.user._id,
       cartItems: [{ product: productId, color, price: product.price }],
     });
   } else {
-    // product exist in cart, update product quantity
     const productIndex = cart.cartItems.findIndex(
       (item) => item.product.toString() === productId && item.color === color
     );
@@ -43,12 +40,10 @@ exports.addProductToCart = asyncHandler(async (req, res, next) => {
 
       cart.cartItems[productIndex] = cartItem;
     } else {
-      // product not exist in cart,  push product to cartItems array
       cart.cartItems.push({ product: productId, color, price: product.price });
     }
   }
-
-  // Calculate total cart price
+ 
   calcTotalCartPrice(cart);
   await cart.save();
 
@@ -148,7 +143,6 @@ exports.updateCartItemQuantity = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/v1/cart/applyCoupon
 // @access  Private/User
 exports.applyCoupon = asyncHandler(async (req, res, next) => {
-  // 1) Get coupon based on coupon name
   const coupon = await Coupon.findOne({
     name: req.body.coupon,
     expire: { $gt: Date.now() },
@@ -157,17 +151,13 @@ exports.applyCoupon = asyncHandler(async (req, res, next) => {
   if (!coupon) {
     return next(new ApiError(`Coupon is invalid or expired`));
   }
-
-  // 2) Get logged user cart to get total cart price
+  
   const cart = await Cart.findOne({ user: req.user._id });
-
   const totalPrice = cart.totalCartPrice;
-
-  // 3) Calculate price after priceAfterDiscount
   const totalPriceAfterDiscount = (
     totalPrice -
     (totalPrice * coupon.discount) / 100
-  ).toFixed(2); // 99.23
+  ).toFixed(2); 
 
   cart.totalPriceAfterDiscount = totalPriceAfterDiscount;
   await cart.save();

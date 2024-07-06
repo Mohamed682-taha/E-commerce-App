@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-// 1- Create Schema
+
 const brandSchema = new mongoose.Schema(
   {
     name: {
@@ -24,14 +24,12 @@ const setImageURL = (doc) => {
     doc.image = imageUrl;
   }
 };
-// findOne, findAll and update
+
 brandSchema.post('init', (doc) => {
   setImageURL(doc);
 });
 
-// create
 brandSchema.post('save', (doc) => {
   setImageURL(doc);
 });
-// 2- Create model
 module.exports = mongoose.model('Brand', brandSchema);

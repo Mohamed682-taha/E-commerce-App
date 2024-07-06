@@ -9,10 +9,8 @@ const { uploadSingleImage } = require('../middlewares/uploadImageMiddleware');
 const createToken = require('../utils/createToken');
 const User = require('../models/userModel');
 
-// Upload single image
 exports.uploadUserImage = uploadSingleImage('profileImg');
 
-// Image processing
 exports.resizeImage = asyncHandler(async (req, res, next) => {
   const filename = `user-${uuidv4()}-${Date.now()}.jpeg`;
 
@@ -22,8 +20,6 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
       .toFormat('jpeg')
       .jpeg({ quality: 95 })
       .toFile(`uploads/users/${filename}`);
-
-    // Save image into our db
     req.body.profileImg = filename;
   }
 
@@ -116,8 +112,7 @@ exports.updateLoggedUserPassword = asyncHandler(async (req, res, next) => {
       new: true,
     }
   );
-
-  // 2) Generate token
+  
   const token = createToken(user._id);
 
   res.status(200).json({ data: user, token });

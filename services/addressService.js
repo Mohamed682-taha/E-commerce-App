@@ -6,7 +6,6 @@ const User = require('../models/userModel');
 // @route   POST /api/v1/addresses
 // @access  Protected/User
 exports.addAddress = asyncHandler(async (req, res, next) => {
-  // $addToSet => add address object to user addresses  array if address not exist
   const user = await User.findByIdAndUpdate(
     req.user._id,
     {
@@ -26,7 +25,6 @@ exports.addAddress = asyncHandler(async (req, res, next) => {
 // @route   DELETE /api/v1/addresses/:addressId
 // @access  Protected/User
 exports.removeAddress = asyncHandler(async (req, res, next) => {
-  // $pull => remove address object from user addresses array if addressId exist
   const user = await User.findByIdAndUpdate(
     req.user._id,
     {

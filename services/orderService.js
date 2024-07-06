@@ -15,31 +15,25 @@ exports.createCashOrder = asyncHandler(async (req, res, next) => {
   // app settings
   const taxPrice = 0;
   const shippingPrice = 0;
-
-  // 1) Get cart depend on cartId
   const cart = await Cart.findById(req.params.cartId);
   if (!cart) {
     return next(
       new ApiError(`There is no such cart with id ${req.params.cartId}`, 404)
     );
   }
-
-  // 2) Get order price depend on cart price "Check if coupon apply"
+  
   const cartPrice = cart.totalPriceAfterDiscount
     ? cart.totalPriceAfterDiscount
     : cart.totalCartPrice;
 
   const totalOrderPrice = cartPrice + taxPrice + shippingPrice;
-
-  // 3) Create order with default paymentMethodType cash
   const order = await Order.create({
     user: req.user._id,
     cartItems: cart.cartItems,
     shippingAddress: req.body.shippingAddress,
     totalOrderPrice,
   });
-
-  // 4) After creating order, decrement product quantity, increment product sold
+  
   if (order) {
     const bulkOption = cart.cartItems.map((item) => ({
       updateOne: {
@@ -48,8 +42,6 @@ exports.createCashOrder = asyncHandler(async (req, res, next) => {
       },
     }));
     await Product.bulkWrite(bulkOption, {});
-
-    // 5) Clear cart depend on cartId
     await Cart.findByIdAndDelete(req.params.cartId);
   }
 
@@ -83,8 +75,6 @@ exports.updateOrderToPaid = asyncHandler(async (req, res, next) => {
       )
     );
   }
-
-  // update order to paid
   order.isPaid = true;
   order.paidAt = Date.now();
 
@@ -106,8 +96,6 @@ exports.updateOrderToDelivered = asyncHandler(async (req, res, next) => {
       )
     );
   }
-
-  // update order to paid
   order.isDelivered = true;
   order.deliveredAt = Date.now();
 
@@ -120,26 +108,19 @@ exports.updateOrderToDelivered = asyncHandler(async (req, res, next) => {
 // @route   GET /api/v1/orders/checkout-session/cartId
 // @access  Protected/User
 exports.checkoutSession = asyncHandler(async (req, res, next) => {
-  // app settings
   const taxPrice = 0;
   const shippingPrice = 0;
-
-  // 1) Get cart depend on cartId
   const cart = await Cart.findById(req.params.cartId);
   if (!cart) {
     return next(
       new ApiError(`There is no such cart with id ${req.params.cartId}`, 404)
     );
   }
-
-  // 2) Get order price depend on cart price "Check if coupon apply"
   const cartPrice = cart.totalPriceAfterDiscount
     ? cart.totalPriceAfterDiscount
     : cart.totalCartPrice;
 
   const totalOrderPrice = cartPrice + taxPrice + shippingPrice;
-
-  // 3) Create stripe checkout session
   const session = await stripe.checkout.sessions.create({
     line_items: [
       {
@@ -156,8 +137,6 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
     client_reference_id: req.params.cartId,
     metadata: req.body.shippingAddress,
   });
-
-  // 4) send session to response
   res.status(200).json({ status: 'success', session });
 });
 
@@ -168,8 +147,6 @@ const createCardOrder = async (session) => {
 
   const cart = await Cart.findById(cartId);
   const user = await User.findOne({ email: session.customer_email });
-
-  // 3) Create order with default paymentMethodType card
   const order = await Order.create({
     user: user._id,
     cartItems: cart.cartItems,
@@ -179,8 +156,6 @@ const createCardOrder = async (session) => {
     paidAt: Date.now(),
     paymentMethodType: 'card',
   });
-
-  // 4) After creating order, decrement product quantity, increment product sold
   if (order) {
     const bulkOption = cart.cartItems.map((item) => ({
       updateOne: {
@@ -189,8 +164,6 @@ const createCardOrder = async (session) => {
       },
     }));
     await Product.bulkWrite(bulkOption, {});
-
-    // 5) Clear cart depend on cartId
     await Cart.findByIdAndDelete(cartId);
   }
 };
@@ -213,7 +186,6 @@ exports.webhookCheckout = asyncHandler(async (req, res, next) => {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
   if (event.type === 'checkout.session.completed') {
-    //  Create order
     createCardOrder(event.data.object);
   }
 

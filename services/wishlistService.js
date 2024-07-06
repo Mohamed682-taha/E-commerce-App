@@ -6,7 +6,6 @@ const User = require('../models/userModel');
 // @route   POST /api/v1/wishlist
 // @access  Protected/User
 exports.addProductToWishlist = asyncHandler(async (req, res, next) => {
-  // $addToSet => add productId to wishlist array if productId not exist
   const user = await User.findByIdAndUpdate(
     req.user._id,
     {
@@ -26,7 +25,6 @@ exports.addProductToWishlist = asyncHandler(async (req, res, next) => {
 // @route   DELETE /api/v1/wishlist/:productId
 // @access  Protected/User
 exports.removeProductFromWishlist = asyncHandler(async (req, res, next) => {
-  // $pull => remove productId from wishlist array if productId exist
   const user = await User.findByIdAndUpdate(
     req.user._id,
     {

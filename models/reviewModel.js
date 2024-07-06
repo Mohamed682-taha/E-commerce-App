@@ -17,7 +17,6 @@ const reviewSchema = new mongoose.Schema(
       ref: 'User',
       required: [true, 'Review must belong to user'],
     },
-    // parent reference (one to many)
     product: {
       type: mongoose.Schema.ObjectId,
       ref: 'Product',
@@ -36,11 +35,9 @@ reviewSchema.statics.calcAverageRatingsAndQuantity = async function (
   productId
 ) {
   const result = await this.aggregate([
-    // Stage 1 : get all reviews in specific product
     {
       $match: { product: productId },
     },
-    // Stage 2: Grouping reviews based on productID and calc avgRatings, ratingsQuantity
     {
       $group: {
         _id: 'product',

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-// 1- Create Schema
+
 const categorySchema = new mongoose.Schema(
   {
     name: {
@@ -9,7 +9,6 @@ const categorySchema = new mongoose.Schema(
       minlength: [3, 'Too short category name'],
       maxlength: [32, 'Too long category name'],
     },
-    // A and B => shopping.com/a-and-b
     slug: {
       type: String,
       lowercase: true,
@@ -25,17 +24,14 @@ const setImageURL = (doc) => {
     doc.image = imageUrl;
   }
 };
-// findOne, findAll and update
 categorySchema.post('init', (doc) => {
   setImageURL(doc);
 });
 
-// create
 categorySchema.post('save', (doc) => {
   setImageURL(doc);
 });
 
-// 2- Create model
 const CategoryModel = mongoose.model('Category', categorySchema);
 
 module.exports = CategoryModel;
